@@ -183,16 +183,14 @@ private fun SettingsScreen(
                 YourAccounts(title, { actions.onYourAccountsClick(title) })
             }
 
-            if (uiState.messageRowState != MessageRowState.Gone) {
-                MediumVerticalSpacer()
+            MediumVerticalSpacer()
 
-                CountListItem(
-                    modifier = Modifier.semantics(true) { },
-                    title = stringResource(R.string.messages_title),
-                    state = mapMessageToCountRowState(uiState.messageRowState),
-                    onClick = actions.onMessagesClick
-                )
-            }
+            CountListItem(
+                modifier = Modifier.semantics(true) { },
+                title = stringResource(R.string.messages_title),
+                state = mapMessageToCountRowState(uiState.messageRowState),
+                onClick = actions.onMessagesClick
+            )
 
             MediumVerticalSpacer()
 
