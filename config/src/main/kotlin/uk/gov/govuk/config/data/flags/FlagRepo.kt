@@ -120,6 +120,14 @@ class FlagRepo @Inject constructor(
         )
     }
 
+    fun isTravelAlertsEnabled(): Boolean {
+        return isEnabled(
+            debugEnabled = debugEnabled,
+            debugFlag = debugFlags.isTravelAlertsEnabled,
+            remoteFlag = configRepo.isTravelAlertsEnabled
+        )
+    }
+
 }
 
 internal fun isEnabled(
