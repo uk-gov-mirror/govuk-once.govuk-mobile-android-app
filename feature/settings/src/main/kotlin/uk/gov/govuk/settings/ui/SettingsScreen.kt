@@ -185,14 +185,16 @@ private fun SettingsScreen(
 
             MediumVerticalSpacer()
 
-            CountListItem(
-                modifier = Modifier.semantics(true) { },
-                title = stringResource(R.string.messages_title),
-                state = mapMessageToCountRowState(uiState.messageRowState),
-                onClick = actions.onMessagesClick
-            )
+            if (uiState.messageRowState != MessageRowState.Gone) {
+                CountListItem(
+                    modifier = Modifier.semantics(true) { },
+                    title = stringResource(R.string.messages_title),
+                    state = mapMessageToCountRowState(uiState.messageRowState),
+                    onClick = actions.onMessagesClick
+                )
 
-            MediumVerticalSpacer()
+                MediumVerticalSpacer()
+            }
 
             NotificationsAndPrivacy(
                 uiState = uiState,
