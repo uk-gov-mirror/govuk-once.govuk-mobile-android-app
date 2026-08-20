@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +21,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -35,6 +41,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -293,26 +300,108 @@ fun QuarterlyFeedbackCard(
     modifier: Modifier = Modifier
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//        TODO: Replace this with the new button...
+        // TODO: sort this out!
+        // TODO: Should it be a component or another BaseButton (icon on left)?
 
         BodyRegularLabel(
             text = body,
             color = GovUkTheme.colourScheme.textAndIcons.primary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = modifier.padding(bottom = GovUkTheme.spacing.small)
         )
 
-        BodyRegularLabel(
-            text = title,
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(vertical = GovUkTheme.spacing.medium)
-                .clickable(onClick = onClick)
-                .semantics {
-                    contentDescription = title
-                },
-            color = GovUkTheme.colourScheme.textAndIcons.linkSecondary,
-            textAlign = TextAlign.Center
+        val enabled = true
+        val colours = GovUkButtonColours(
+            defaultContainerColour = GovUkTheme.colourScheme.surfaces.buttonPrimary,
+            defaultContentColour = GovUkTheme.colourScheme.textAndIcons.buttonPrimary,
+            defaultStrokeColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryStroke,
+            focussedContainerColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryFocused,
+            focussedContentColour = GovUkTheme.colourScheme.textAndIcons.buttonPrimaryFocused,
+            focussedStrokeColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryStrokeFocussed,
+            pressedContainerColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryHighlight,
+            pressedContentColour = GovUkTheme.colourScheme.textAndIcons.buttonPrimaryHighlight,
+            pressedStrokeColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryStrokeHighlight,
+            disabledContainerColour = GovUkTheme.colourScheme.surfaces.buttonPrimaryDisabled,
+            disabledContentColour = GovUkTheme.colourScheme.textAndIcons.buttonPrimaryDisabled
         )
+        val interactionSource = remember { MutableInteractionSource() }
+        val isFocused by interactionSource.collectIsFocusedAsState()
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val isHovered by interactionSource.collectIsHoveredAsState()
+
+        var stateMappedColours = buttonColors(
+            containerColor = colours.defaultContainerColour,
+            contentColor = colours.defaultContentColour,
+            disabledContainerColor = colours.disabledContainerColour,
+            disabledContentColor = colours.disabledContentColour,
+        )
+
+        stateMappedColours = when {
+            isFocused -> stateMappedColours.copy(
+                containerColor = colours.focussedContainerColour,
+                contentColor = colours.focussedContentColour,
+            )
+            isPressed || isHovered -> stateMappedColours.copy(
+                containerColor = colours.pressedContainerColour,
+                contentColor = colours.pressedContentColour
+            )
+            else -> stateMappedColours
+        }
+
+        val borderColour = if (enabled) {
+            when {
+                isFocused -> colours.focussedBorderColour
+                isPressed || isHovered -> colours.pressedBorderColour
+                else -> colours.defaultBorderColour
+            }
+        } else {
+            colours.disabledBorderColour
+        }
+
+        val strokeColour = if (enabled) {
+            when {
+                isFocused -> colours.focussedStrokeColour
+                isPressed || isHovered -> colours.pressedStrokeColour
+                else -> colours.defaultStrokeColour
+            }
+        } else {
+            null
+        }
+
+        Button(
+            onClick = onClick,
+            modifier = Modifier
+                .drawBottomStroke(
+                    colour = strokeColour,
+                    cornerRadius = 15.dp
+                ),
+            enabled = enabled,
+            shape = RoundedCornerShape(15.dp),
+            colors = stateMappedColours,
+            border = borderColour?.let { BorderStroke(1.dp, it) },
+            interactionSource = interactionSource
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.outline_thumbs_up_down_24),
+                contentDescription = title,
+                tint = GovUkTheme.colourScheme.textAndIcons.iconPrimary,
+                modifier = Modifier
+                    .padding(end = GovUkTheme.spacing.small)
+                    .testTag("openInNewTabIcon")
+            )
+
+            Text(
+                text = title,
+                style = GovUkTheme.typography.bodyBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .semantics {
+                        contentDescription = title
+                    }
+                    .weight(1f, fill = false)
+            )
+        }
     }
 }
 
@@ -762,7 +851,11 @@ private fun SearchResultWithoutDescriptionPreview() {
 @Composable
 private fun QuarterlyFeedbackCardPreview() {
     GovUkTheme {
-        QuarterlyFeedbackCard("Card body", "A link description", {})
+        QuarterlyFeedbackCard(
+            "Card body",
+            "A link description",
+            {}
+        )
     }
 }
 
